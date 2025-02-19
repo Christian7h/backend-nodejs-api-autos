@@ -3,7 +3,17 @@ const cloudinary = require('../config/cloudinary');
 
 exports.getVehicles = async (req, res) => {
     try {
-        const vehicles = await Vehicle.find().populate('brandId', 'name logo');
+        const { brandId } = req.query; // Capturar brandId desde query params
+        let filter = {};
+
+        if (brandId) {
+            if (!mongoose.Types.ObjectId.isValid(brandId)) {
+                return res.status(400).json({ error: 'Invalid brandId' });
+            }
+            filter.brandId = brandId;
+        }
+
+        const vehicles = await Vehicle.find(filter).populate('brandId', 'name logo');
         res.json(vehicles);
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
