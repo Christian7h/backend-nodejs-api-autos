@@ -1,5 +1,6 @@
 const Vehicle = require('../models/vehicle.model');
 const cloudinary = require('../config/cloudinary');
+const mongoose = require('mongoose');
 
 exports.getVehicles = async (req, res) => {
     try {
@@ -35,14 +36,21 @@ exports.getVehiclesByBrand = async (req, res) => {
     try {
         const { brandId } = req.params;
 
+        // Verificar si el brandId es válido antes de hacer la consulta
         if (!mongoose.Types.ObjectId.isValid(brandId)) {
-            return res.status(400).json({ error: 'Invalid brandId' });
+            return res.status(400).json({ error: 'Invalid brandId format' });
         }
 
         const vehicles = await Vehicle.find({ brandId }).populate('brandId', 'name logo');
+        
+        if (!vehicles.length) {
+            return res.status(404).json({ error: 'No vehicles found for this brand' });
+        }
+
         res.json(vehicles);
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        console.error('Error fetching vehicles by brand:', error);
+        res.status(500).json({ error: error.message || 'Server error' });
     }
 };
 exports.createVehicle = async (req, res) => {
