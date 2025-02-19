@@ -31,7 +31,20 @@ exports.getOneVehicle = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+exports.getVehiclesByBrand = async (req, res) => {
+    try {
+        const { brandId } = req.params;
 
+        if (!mongoose.Types.ObjectId.isValid(brandId)) {
+            return res.status(400).json({ error: 'Invalid brandId' });
+        }
+
+        const vehicles = await Vehicle.find({ brandId }).populate('brandId', 'name logo');
+        res.json(vehicles);
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+};
 exports.createVehicle = async (req, res) => {
     try {
         const { files, body } = req;

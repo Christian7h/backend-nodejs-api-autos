@@ -5,13 +5,15 @@ const {
     createVehicle,
     getOneVehicle,
     updateVehicle,
-    deleteVehicle
+    deleteVehicle,
+    getVehiclesByBrand
 } = require('../controllers/vehicle.controller');
 
 const router = express.Router();
 
 router.get('/', getVehicles);
 router.get('/:id', getOneVehicle);
+router.get('/brand/:brandId', getVehiclesByBrand);
 
 // Subida de una imagen principal y múltiples imágenes para galería
 router.post('/', 
