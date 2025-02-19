@@ -1,5 +1,7 @@
 const express = require('express');
 const upload = require('../middlewares/upload');
+const cache = require('../middlewares/cache'); // Importa el middleware de caché
+
 const {
     getVehicles,
     createVehicle,
@@ -11,9 +13,9 @@ const {
 
 const router = express.Router();
 
-router.get('/', getVehicles);
-router.get('/:id', getOneVehicle);
-router.get('/brand/:brandId', getVehiclesByBrand);
+router.get('/',cache, getVehicles);
+router.get('/:id',cache, getOneVehicle);
+router.get('/brand/:brandId',cache, getVehiclesByBrand);
 
 // Subida de una imagen principal y múltiples imágenes para galería
 router.post('/', 
