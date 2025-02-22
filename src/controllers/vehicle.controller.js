@@ -2,9 +2,20 @@ const Vehicle = require('../models/vehicle.model');
 const cloudinary = require('../config/cloudinary');
 const mongoose = require('mongoose');
 
+// Función para cargar imágenes en Cloudinary
+const uploadImage = async (file) => {
+    try {
+        const result = await cloudinary.uploader.upload(file.path);
+        return result.secure_url;
+    } catch (error) {
+        console.error('Error al subir imagen a Cloudinary:', error);
+        throw new Error('Image upload failed');
+    }
+};
+
 exports.getVehicles = async (req, res) => {
     try {
-        const { brandId } = req.query; // Capturar brandId desde query params
+        const { brandId } = req.query;
         let filter = {};
 
         if (brandId) {
@@ -17,7 +28,7 @@ exports.getVehicles = async (req, res) => {
         const vehicles = await Vehicle.find(filter).populate('brandId', 'name logo');
         res.json(vehicles);
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: error.message || 'Server error' });
     }
 };
 
@@ -29,14 +40,14 @@ exports.getOneVehicle = async (req, res) => {
         }
         res.json(vehicle);
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: error.message || 'Server error' });
     }
 };
+
 exports.getVehiclesByBrand = async (req, res) => {
     try {
         const { brandId } = req.params;
 
-        // Verificar si el brandId es válido antes de hacer la consulta
         if (!mongoose.Types.ObjectId.isValid(brandId)) {
             return res.status(400).json({ error: 'Invalid brandId format' });
         }
@@ -49,32 +60,26 @@ exports.getVehiclesByBrand = async (req, res) => {
 
         res.json(vehicles);
     } catch (error) {
-        console.error('Error fetching vehicles by brand:', error);
         res.status(500).json({ error: error.message || 'Server error' });
     }
 };
+
 exports.createVehicle = async (req, res) => {
     try {
         const { files, body } = req;
 
-        // Convertir el campo translations a un Map
         if (body.translations) {
             body.translations = new Map(Object.entries(body.translations));
         }
 
         // Subir imagen principal
         if (files.image) {
-            const result = await cloudinary.uploader.upload(files.image[0].path);
-            body.image = result.secure_url;
+            body.image = await uploadImage(files.image[0]);
         }
 
         // Subir galería de imágenes
         if (files.images) {
-            body.images = [];
-            for (let file of files.images) {
-                const result = await cloudinary.uploader.upload(file.path);
-                body.images.push(result.secure_url);
-            }
+            body.images = await Promise.all(files.images.map(file => uploadImage(file)));
         }
 
         const newVehicle = new Vehicle(body);
@@ -82,10 +87,9 @@ exports.createVehicle = async (req, res) => {
         res.status(201).json({ message: 'Vehicle created successfully', vehicle: newVehicle });
     } catch (error) {
         console.error('Error:', error);
-        res.status(400).json({ error: 'Invalid data' });
+        res.status(400).json({ error: error.message || 'Invalid data' });
     }
 };
-
 
 exports.updateVehicle = async (req, res) => {
     try {
@@ -93,17 +97,12 @@ exports.updateVehicle = async (req, res) => {
 
         // Subir nueva imagen principal si se proporciona
         if (files.image) {
-            const result = await cloudinary.uploader.upload(files.image[0].path);
-            body.image = result.secure_url;
+            body.image = await uploadImage(files.image[0]);
         }
 
         // Subir nuevas imágenes de galería si se proporcionan
         if (files.images) {
-            body.images = [];
-            for (let file of files.images) {
-                const result = await cloudinary.uploader.upload(file.path);
-                body.images.push(result.secure_url);
-            }
+            body.images = await Promise.all(files.images.map(file => uploadImage(file)));
         }
 
         const vehicle = await Vehicle.findByIdAndUpdate(req.params.id, body, { new: true, runValidators: true });
@@ -112,7 +111,7 @@ exports.updateVehicle = async (req, res) => {
         }
         res.json({ message: 'Vehicle updated successfully', vehicle });
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: error.message || 'Server error' });
     }
 };
 
@@ -124,6 +123,6 @@ exports.deleteVehicle = async (req, res) => {
         }
         res.json({ message: 'Vehicle deleted successfully', vehicle });
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: error.message || 'Server error' });
     }
 };
