@@ -3,8 +3,8 @@ const { createApiKey, getAllApiKeys, deleteApiKey } = require("../controllers/ap
 
 const router = express.Router();
 
-router.post("/", createApiKey); // Crear una API Key
-router.get("/", getAllApiKeys); // Obtener todas las API Keys
-router.delete("/:id", deleteApiKey); // Eliminar una API Key por ID
+router.post("/", createApiKey); 
+router.get("/", getAllApiKeys); 
+router.delete("/:id", deleteApiKey);
 
 module.exports = router;
