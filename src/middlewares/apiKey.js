@@ -1,4 +1,4 @@
-const ApiKey = require("../models/apiKey"); // Asegúrate de tener el modelo correcto
+const ApiKey = require("../models/apiKey.model"); // Asegúrate de tener el modelo correcto
 
 const checkApiKey = async (req, res, next) => {
     try {

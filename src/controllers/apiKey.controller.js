@@ -1,4 +1,4 @@
-const ApiKey = require("../models/apiKey");
+const ApiKey = require("../models/apiKey.model");
 const crypto = require("crypto");
 
 exports.createApiKey = async (req, res) => {
