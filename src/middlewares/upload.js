@@ -5,14 +5,15 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const FILE_TYPE_MAP = {
     'image/png': 'png',
     'image/jpeg': 'jpeg',
-    'image/jpg': 'jpg'
+    'image/jpg': 'jpg',
+    'image/webp': 'webp'
 };
 
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'vehicles',
-        allowed_formats: ['jpg', 'jpeg', 'png']
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp']
     }
 });
 

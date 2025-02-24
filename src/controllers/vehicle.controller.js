@@ -15,23 +15,26 @@ const uploadImage = async (file) => {
 
 exports.getVehicles = async (req, res) => {
     try {
-        const { brandId } = req.query;
-        let filter = {};
-
-        if (brandId) {
-            if (!mongoose.Types.ObjectId.isValid(brandId)) {
-                return res.status(400).json({ error: 'Invalid brandId' });
-            }
-            filter.brandId = brandId;
-        }
-
-        const vehicles = await Vehicle.find(filter).populate('brandId', 'name logo');
-        res.json(vehicles);
+      const { page = 1, limit = 10 } = req.query;
+  
+      const skip = (page - 1) * limit;
+      const vehicles = await Vehicle.find() // Agrega el filtro si es necesario
+        .skip(skip)
+        .limit(limit);
+  
+      const total = await Vehicle.countDocuments();
+      const totalPages = Math.ceil(total / limit);
+  
+      res.json({
+        vehicles,
+        total,
+        pages: totalPages,
+      });
     } catch (error) {
-        res.status(500).json({ error: error.message || 'Server error' });
+      res.status(500).json({ error: 'Failed to load vehicles' });
     }
-};
-
+  };
+  
 exports.getOneVehicle = async (req, res) => {
     try {
         const vehicle = await Vehicle.findById(req.params.id).populate('brandId', 'name logo');
@@ -44,25 +47,20 @@ exports.getOneVehicle = async (req, res) => {
     }
 };
 
+// Backend - controlador de vehículos
 exports.getVehiclesByBrand = async (req, res) => {
     try {
-        const { brandId } = req.params;
-
-        if (!mongoose.Types.ObjectId.isValid(brandId)) {
-            return res.status(400).json({ error: 'Invalid brandId format' });
-        }
-
-        const vehicles = await Vehicle.find({ brandId }).populate('brandId', 'name logo');
-        
-        if (!vehicles.length) {
-            return res.status(404).json({ error: 'No vehicles found for this brand' });
-        }
-
-        res.json(vehicles);
+      const { brandId } = req.params;
+  
+      // Obtener solo los vehículos de la marca seleccionada
+      const vehicles = await Vehicle.find({ brandId });
+  
+      res.json(vehicles);
     } catch (error) {
-        res.status(500).json({ error: error.message || 'Server error' });
+      res.status(500).json({ error: 'Failed to load vehicles' });
     }
-};
+  };
+  
 
 exports.createVehicle = async (req, res) => {
     try {
