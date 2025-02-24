@@ -1,4 +1,4 @@
-const ApiKey = require("../models/apiKey.model"); // Asegúrate de tener el modelo correcto
+const ApiKey = require("../models/apiKey.model");
 
 const checkApiKey = async (req, res, next) => {
     try {
@@ -8,14 +8,16 @@ const checkApiKey = async (req, res, next) => {
             return res.status(401).json({ error: "API Key requerida" });
         }
 
-        // Buscar API Key en la base de datos
         const validKey = await ApiKey.findOne({ key: apiKey });
 
         if (!validKey) {
             return res.status(403).json({ error: "API Key inválida" });
         }
 
-        // Verificar si la clave ha expirado
+        if (!validKey.active) {
+            return res.status(403).json({ error: "API Key desactivada y/o expirada" });
+        }
+
         if (validKey.expiresAt && validKey.expiresAt < new Date()) {
             return res.status(403).json({ error: "API Key expirada" });
         }
@@ -26,5 +28,4 @@ const checkApiKey = async (req, res, next) => {
         res.status(500).json({ error: "Error interno del servidor" });
     }
 };
-
 module.exports = checkApiKey;
